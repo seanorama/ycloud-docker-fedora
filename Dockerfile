@@ -31,6 +31,9 @@ RUN set -ex \
 	&& make install \
 	&& rm -rf /usr/local/src/python ~/.cache
 
+RUN dnf -y remove zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel
+RUN dnf -y groupremove "Development tools"
+
 ## Clean yum space
 RUN dnf clean all
 
