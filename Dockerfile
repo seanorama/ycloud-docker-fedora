@@ -34,5 +34,5 @@ RUN set -ex \
 ## Clean yum space
 RUN dnf clean all
 
-VOLUME [ "/sys/fs/cgroup" ]
-CMD ["/usr/sbin/init"]
+#VOLUME [ "/sys/fs/cgroup" ]
+#CMD ["/usr/sbin/init"]
