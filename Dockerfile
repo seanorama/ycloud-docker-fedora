@@ -1,25 +1,15 @@
 FROM docker.io/fedora
 
-ENV container docker
+## YCloud Slider requirements
+RUN dnf -y update \
+	&& dnf -y install procps iproute hostname \
+	&& dnf clean all
 
+## YCloud Slider bug requiring Python <2.7.9
 ENV PYTHON_VERSION 2.7.8
-
-RUN dnf -y update
-
-#RUN dnf -y install systemd && \
-#(cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == systemd-tmpfiles-setup.service ] || rm -f $i; done); \
-#rm -f /lib/systemd/system/multi-user.target.wants/*;\
-#rm -f /etc/systemd/system/*.wants/*;\
-#rm -f /lib/systemd/system/local-fs.target.wants/*; \
-#rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
-#rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
-#rm -f /lib/systemd/system/basic.target.wants/*;\
-#rm -f /lib/systemd/system/anaconda.target.wants/*;
-
-## Workaround for Slider Python 2.7.9 bug
-RUN dnf -y groupinstall "Development tools"
-RUN dnf -y install file tar zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel
-RUN set -ex \
+RUN dnf -y groupinstall "Development tools" \
+	&& dnf -y install file tar zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel \
+	\
 	&& curl -fSL "https://www.python.org/ftp/python/${PYTHON_VERSION%%[a-z]*}/Python-$PYTHON_VERSION.tgz" -o python.tgz \
 	&& mkdir -p /usr/local/src/python \
 	&& tar -xzC /usr/local/src/python --strip-components=1 -f python.tgz \
@@ -29,13 +19,10 @@ RUN set -ex \
 	&& ./configure --enable-unicode=ucs4 --prefix=/opt/python \
 	&& make -j$(nproc) \
 	&& make install \
-	&& rm -rf /usr/local/src/python ~/.cache
+	&& rm -rf /usr/local/src/python ~/.cache \
+	\
+	&& dnf -y remove zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel \
+	&& dnf -y groupremove "Development tools" \
+	&& dnf -y autoremove \
+	&& dnf clean all
 
-RUN dnf -y remove zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel
-RUN dnf -y groupremove "Development tools"
-
-## Clean yum space
-RUN dnf clean all
-
-#VOLUME [ "/sys/fs/cgroup" ]
-#CMD ["/usr/sbin/init"]
